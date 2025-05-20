@@ -1,0 +1,1 @@
+MODEL_NAME_QWEN_OLLAMA = "qwen2:7b"
