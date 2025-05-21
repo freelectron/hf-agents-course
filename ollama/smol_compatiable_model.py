@@ -10,7 +10,7 @@ class OllamaQwen7BClientModel:
         self,
         model_id: str = 'Qwen/Qwen2.5-Coder-32B-Instruct',
         model_id_ollama_openai: str = MODEL_NAME_QWEN_OLLAMA,
-        api_base: str = "http://localhost:11434",
+        api_base: str = "http://localhost:11434/v1",
         temperature: float = 0.7,
         num_ctx: int = 2048,
     ):
@@ -36,4 +36,4 @@ class OllamaQwen7BClientModel:
             stream=stream,
         )
 
-        return chat_completion
+        return chat_completion.choices[0].message
