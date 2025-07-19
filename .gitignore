@@ -5,3 +5,5 @@
 __pycache__/
 
 .gradio/
+
+unit2.2_llama_index/mlruns/
