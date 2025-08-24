@@ -15,3 +15,6 @@ unit2.2_llama_index/mlruns/0
 *.jpg
 *.pt
 *.mp4
+*.xls
+*.csv
+*.pq
