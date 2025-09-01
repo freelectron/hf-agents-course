@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "generalist"
+version = "0.1.0"
+authors = ["Anton Kerel"]
+description = "Agent that can do some things"
+readme = "README.md"
+packages = [{ include = "generalist", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+llama-index = "^0.13.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
