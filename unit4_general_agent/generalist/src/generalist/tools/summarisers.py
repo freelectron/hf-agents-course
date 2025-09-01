@@ -6,10 +6,10 @@ from ..models.core import llm
 
 
 def construct_short_answer(task: str, context: str) -> ShortAnswer:
-    """Summarizes a context and provides a structured short answer to a task.
+    """Summarizes a context and provides a structured short answer to the task.
 
-    This function sends the context and a task to an LLM, asking it to synthesize
-    the information and return the result in a specific JSON format.
+    This function sends the task and context to an LLM, which synthesizes 
+    the information and return a shorten result.
 
     Note:
         This function requires a configured LLM client, represented here as `llm`.

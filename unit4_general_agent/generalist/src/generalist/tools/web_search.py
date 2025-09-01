@@ -129,7 +129,7 @@ def download_content(resource: WebSearchResult) -> str:
 
     return extract_clean_text(html_content)
 
-def web_search(question: str, links_per_query: int = 2) -> list[ContentResource]:
+def web_search(question: str, links_per_query: int = 1) -> list[ContentResource]:
     """Orchestrates the full web search process for a given question.
 
     This process includes:

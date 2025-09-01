@@ -50,22 +50,11 @@ where
     A short explanation of the next step that follows from the first",
     And so on..."
   ]
+  **IMPORTANT**: do not include any json formating directives, output plain json string
 """
     task_response = llm.complete(prompt)
 
     return task_response.text
-
-def set_task(task:str) -> str: 
-    task_plan_response = create_plan(task)
-
-    # Assume llm outputs smth json-like with the correct keys.
-    result = json.loads(task_plan_response)
-
-    return Task(
-      question=task,
-      objective=result["objective"],
-      plan=result["plan"],
-    )
 
 def determine_capabilities(task: str, attachments: list[str] = None) -> CapabilityPlan:
     """
