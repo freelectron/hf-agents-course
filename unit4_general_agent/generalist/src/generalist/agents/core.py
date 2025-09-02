@@ -14,7 +14,7 @@ class AgentCapabilityOutput:
     # Produced resources
     resources: Optional[list[ContentResource]] = None
     # Produced file attachments 
-    attachments: Optional[list[Attachments]]=None
+    attachments: Optional[list[Attachments]] = None
 
 
 class BaseAgentCapability:

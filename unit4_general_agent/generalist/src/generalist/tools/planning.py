@@ -1,8 +1,11 @@
 import json
+import logging 
 
 from ..agents.core import AgentCapabilityAudioProcessor, AgentCapabilityCodeMathWritter, AgentCapabilityDeepWebSearch, AgentCapabilityImageProcessor, AgentCapabilityStructuredDataProcessor, AgentCapabilityUnstructuredDataProcessor, AgentCapabilityVideoProcessor, CapabilityPlan, json_to_capability_plan
 from .data_model import Task
 from ..models.core import llm
+
+from generalist import logger
 
 def create_plan(task: str) -> str:
     """
@@ -52,6 +55,8 @@ where
   ]
   **IMPORTANT**: do not include any json formating directives, output plain json string
 """
+    # logger.debug(f"LLM call {type(llm)}-{llm.model} | {create_plan.__name__} | Prompt:\n'''\n{prompt}\n'''")
+    
     task_response = llm.complete(prompt)
 
     return task_response.text
@@ -142,7 +147,7 @@ Respond in this exact JSON format:
     }}
   ]
 }}
-"""
+"""   
     response = llm.complete(planning_prompt)
     response_text = response.text.strip()
 
