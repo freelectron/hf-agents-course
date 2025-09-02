@@ -18,3 +18,6 @@ unit2.2_llama_index/mlruns/0
 *.xls
 *.csv
 *.pq
+
+unit4_general_agent/generalist/notebooks/mlruns
+unit4_general_agent/generalist/notebooks/mlartifacts/
