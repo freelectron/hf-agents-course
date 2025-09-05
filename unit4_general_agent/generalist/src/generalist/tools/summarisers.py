@@ -27,7 +27,7 @@ def construct_short_answer(task: str, context: str) -> ShortAnswer:
     LIST:
     {context}
 
-    Based **ONLY** on that list and without any additional assumptions from your side, perform the task specified.
+    Based **ONLY** on that list and without any additional assumptions from your side, perform the task specified (or answer the question).
 
     TASK:
     {task}

@@ -55,7 +55,7 @@ def text_process_llm(task: str, text: str, chunk_size: int = 10000, chunk_overla
     text_splitter = CharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        separator=""  # An empty separator splits by character
+        separator=" "  
     )
     chunks = text_splitter.split_text(text)
 

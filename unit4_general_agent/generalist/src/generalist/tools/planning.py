@@ -53,7 +53,8 @@ where
     A short explanation of the next step that follows from the first",
     And so on..."
   ]
-  **IMPORTANT**: do not include any json formating directives, output plain json string
+  **IMPORTANT**: you should only include the minimum number of steps to accomplish the task (*strive for 1, 2 or 3 steps*), do not include varification steps.
+  **IMPORTANT**: do not include any json formating directives, output plain json string.
 """
     # logger.debug(f"LLM call {type(llm)}-{llm.model} | {create_plan.__name__} | Prompt:\n'''\n{prompt}\n'''")
     
@@ -61,7 +62,7 @@ where
 
     return task_response.text
 
-def determine_capabilities(task: str, attachments: list[str] = None) -> CapabilityPlan:
+def determine_capabilities(task: str, attachments: list[str] = None, context: str = "") -> CapabilityPlan:
     """
     Analyzes a task and generates a sequential execution plan using available capabilities.
 
@@ -78,10 +79,7 @@ def determine_capabilities(task: str, attachments: list[str] = None) -> Capabili
 
     # TODO: is this fine to map capability to an agent one-to-one? 
     planning_prompt = f"""
-You are a highly intelligent planning agent. Your primary function is to analyze a user's task and create a precise, step-by-step execution plan using a predefined set of capabilities.
-
-**Your Task:**
-Analyze the provided task and create a sequential plan to accomplish it. The plan should be a list of steps, where each step defines the capability to use and the specific activity to perform.
+You are a highly intelligent planning agent. Your primary function is to analyze a user's task together with the given context and create a precise, step-by-step execution plan using a predefined set of capabilities.
 
 **Capabilities:**
 - `{AgentCapabilityDeepWebSearch.name}`: Find, evaluate, and download web content (e.g., articles, documents). This capability is for search and downloading web resources only, not for processing the content or getting any answers on the content.
@@ -92,8 +90,11 @@ Analyze the provided task and create a sequential plan to accomplish it. The pla
 - `{AgentCapabilityUnstructuredDataProcessor.name}`: Analyze, summarize, extract information from, or answer questions about raw text or documents (e.g., PDFs, TXT files, retrieved web content).
 - `{AgentCapabilityCodeMathWritter.name}`: Generate or execute code, solve mathematical problems, or perform complex logical operations and computations.
 
-Instructions:
-Deconstruct the Task -> Assign Capabilities for each step -> Define the Activity for each step (i.e.,write a clear and concise description of the specific action to be performed using the chosen capability)
+
+**Your Task:**
+Analyze the provided task and create a sequential plan to accomplish it. The plan should be a list of steps, where each step defines the capability to use and the specific activity to perform, thus:
+- "activity" for the step is a clear and concise description of the specific action to be performed using the chosen capability
+- "capablity" is one of the above mentioned capabilities that should be used to accomplish the activity
 
 Example 1: Simple Fact Lookup
 Task: "What is the boiling point of water at sea level?"
@@ -101,12 +102,12 @@ Output:
 {{
   "subplan": [
     {{
-      "capability": "{AgentCapabilityDeepWebSearch.name}",
-      "activity": "Search for the boiling point of water at sea level"
+      "activity": "Search for the boiling point of water at sea level",
+      "capability": "{AgentCapabilityDeepWebSearch.name}"
     }},
     {{
-      "capability": "{AgentCapabilityUnstructuredDataProcessor.name}",
-      "activity": "Analyze the downloaded web resources and find the reference to the boiling point temperature."
+      "activity": "Analyze the downloaded web resources and find the reference to the boiling point temperature.",
+      "capability": "{AgentCapabilityUnstructuredDataProcessor.name}"
     }}
   ]
 }}
@@ -118,13 +119,13 @@ Output:
 {{
   "subplan": [
     {{
-      "capability": "{AgentCapabilityDeepWebSearch.name}",
-      "activity": "Search for and download NVIDIA's official Q2 2025 earnings report document and download it."
+      "activity": "Search for and download NVIDIA's official Q2 2025 earnings report document and download it.",
+      "capability": "{AgentCapabilityDeepWebSearch.name}"
     }},
     {{
-      "capability": "{AgentCapabilityUnstructuredDataProcessor.name}",
-      "activity": "Analyze the downloaded earnings report to find and extract the revenue figure for the 'Gaming' division."
-    }}
+      "activity": "Analyze the downloaded earnings report to find and extract the revenue figure for the 'Gaming' division.",
+      "capability": "{AgentCapabilityUnstructuredDataProcessor.name}"
+    }},
   ]
 }}
 
@@ -133,17 +134,19 @@ Begin Plan Generation
 
 Task: "{task}"
 Attachments: "{attachment_info}"
+Context: "{context}"
 
+**IMPORTANT**: take into account the context and attachments, e.g., specify the activity based on what was already FOUND in the context.     
 Respond in this exact JSON format:
 {{
   "subplan": [
     {{
-      "capability": "...",
-      "activity": "..."
+      "activity": "...",
+      "capability": "..."
     }},
     {{
-      "capability": "...",
-      "activity": "..."
+      "activity": "...",
+      "capability": "..."
     }}
   ]
 }}

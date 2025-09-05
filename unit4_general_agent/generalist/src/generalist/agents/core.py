@@ -85,7 +85,11 @@ class AgentCapabilityUnstructuredDataProcessor(BaseAgentCapability):
         Args:
         ask (str): what data we are analysing 
         """
-        text = [web_resource.content for web_resource in resources]
+        resource_contents = [web_resource.content for web_resource in resources]
+
+        # TODO: make this more robust 
+        text  = "; \n\n |  ".join(resource_contents)
+
         answers = text_process_llm(self.activity, text)
         short_answers = [construct_short_answer(self.activity, answer) for answer in answers] 
 
