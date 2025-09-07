@@ -62,7 +62,7 @@ where
 
     return task_response.text
 
-def determine_capabilities(task: str, attachments: list[str] = None, context: str = "") -> CapabilityPlan:
+def determine_capabilities(current_step: str, task: Task, attachments: list[str] = None, context: str = "") -> CapabilityPlan:
     """
     Analyzes a task and generates a sequential execution plan using available capabilities.
 
@@ -79,7 +79,7 @@ def determine_capabilities(task: str, attachments: list[str] = None, context: st
 
     # TODO: is this fine to map capability to an agent one-to-one? 
     planning_prompt = f"""
-You are a highly intelligent planning agent. Your primary function is to analyze a user's task together with the given context and create a precise, step-by-step execution plan using a predefined set of capabilities.
+You are a highly intelligent planning agent. Your primary function is to analyze a user's task together with the current step that needs to be executed and given the context/attachments create a precise, step-by-step plan using only a predefineds set of capabilities.
 
 **Capabilities:**
 - `{AgentCapabilityDeepWebSearch.name}`: Find, evaluate, and download web content (e.g., articles, documents). This capability is for search and downloading web resources only, not for processing the content or getting any answers on the content.
@@ -97,45 +97,50 @@ Analyze the provided task and create a sequential plan to accomplish it. The pla
 - "capablity" is one of the above mentioned capabilities that should be used to accomplish the activity
 
 Example 1: Simple Fact Lookup
-Task: "What is the boiling point of water at sea level?"
+Current step: "Look up the age of the that actor." 
+Task: "Task(question='What is the age of the main actor of Inception?', objective='Identify the main actor who played in Inception and their age', plan=['Determine the main charcter of the movie Inception', "Look up the age of the that actor'"]),
+Context: {{'found': 'Leonardo DiCaprio oplayed the main character' ...}} 
 Output:
 {{
   "subplan": [
     {{
-      "activity": "Search for the boiling point of water at sea level",
+      "activity": "Search for the age of Leonardo DiCaprio online",
       "capability": "{AgentCapabilityDeepWebSearch.name}"
     }},
     {{
-      "activity": "Analyze the downloaded web resources and find the reference to the boiling point temperature.",
+      "activity": "Identify the age of Leonardo DiCaprio from the text",
       "capability": "{AgentCapabilityUnstructuredDataProcessor.name}"
     }}
   ]
 }}
 
-Example 2: Multi-step Information Retrieval and Analysis
-
-Task: "Find the Q2 2025 earnings report for NVIDIA and tell me what their 'Gaming' division revenue was."
+Example 2: Audio Content Extraction
+Current step: "Extract the spoken content from the audio file."
+Task: "Task(question='What are the main topics discussed in the uploaded podcast episode?', objective='Summarize the key themes of the podcast', plan=['Download the audio file', 'Extract and transcribe speech', 'Summarize the transcription'])",
+Context: {{'file': 'podcast_episode.mp3'}}
 Output:
 {{
-  "subplan": [
-    {{
-      "activity": "Search for and download NVIDIA's official Q2 2025 earnings report document and download it.",
-      "capability": "{AgentCapabilityDeepWebSearch.name}"
-    }},
-    {{
-      "activity": "Analyze the downloaded earnings report to find and extract the revenue figure for the 'Gaming' division.",
-      "capability": "{AgentCapabilityUnstructuredDataProcessor.name}"
-    }},
+    "subplan": [
+  {{
+    "activity": "Download and transcribe the speech from podcast_episode.mp3",
+    "capability": "{AgentCapabilityAudioProcessor.name}"
+  }},
+  {{
+    "activity": "Summarize the transcription to identify the main topics",
+    "capability": "{AgentCapabilityUnstructuredDataProcessor.name}"
+  }}
   ]
 }}
 
 ---
 Begin Plan Generation
 
-Task: "{task}"
+Current step: "{current_step}".
+Task: "{task}".
 Attachments: "{attachment_info}"
 Context: "{context}"
 
+**IMPORTANT**: you are only handling "{current_step}" of the plan "{task.plan}", FOCUS ONLY ON THAT AND WHAT WAS ALREADY FOUND IN THE CONTEXT.   
 **IMPORTANT**: take into account the context and attachments, e.g., specify the activity based on what was already FOUND in the context.     
 Respond in this exact JSON format:
 {{

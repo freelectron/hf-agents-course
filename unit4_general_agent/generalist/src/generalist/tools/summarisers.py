@@ -35,19 +35,22 @@ def construct_short_answer(task: str, context: str) -> ShortAnswer:
     Your answer should be in a valid JSON format like so:
     {{
         "answer": "<a single number, word, or phrase which is the answer to the question>",
-        "clarification": "<a very short mention of what the answer is based on>"
+        "clarification": "<a very short mention of what the answer is based on, **always relate it back to the question**>"
     }}
 
     Rules:
         - If the text contains the complete answer → put the exact answer in "answer".
         - If the text contains no relevant information → put "answer": "not found".
         - If the text contains some but not all information → put "answer": "not found".
-        - The "clarification" must mention the relevant part of the text and explain briefly.
+        - The "clarification" must mention the relevant part of the text and explain briefly the reasoning based on the task/question.
     """
 
     llm_response = llm.complete(prompt)
     response_text = llm_response.text
     response_text = response_text.strip()
+
+    #FIXME: delete this 
+    print("----------- construct_short_answer ----------- ", response_text)
 
     data = json.loads(response_text)
     return ShortAnswer(
