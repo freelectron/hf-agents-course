@@ -4,17 +4,16 @@ from dataclasses import dataclass
 from ..tools.summarisers import construct_short_answer
 from ..tools.text_processing import text_process_llm
 from ..tools.web_search import web_search 
-from ..tools.data_model import Attachments, ContentResource, ShortAnswer
+from ..tools.data_model import ContentResource, ShortAnswer
+from ..tools.code import write_python_eda, run_code, write_python_code_task
 
 
 @dataclass
 class AgentCapabilityOutput: 
     # Based on resources or file attachments, a list of short answers to the task 
-    answers: Optional[list[ShortAnswer]] = None
+    answers: Optional[list[ShortAnswer]]
     # Produced resources
     resources: Optional[list[ContentResource]] = None
-    # Produced file attachments 
-    attachments: Optional[list[Attachments]] = None
 
 
 class BaseAgentCapability:
@@ -26,7 +25,7 @@ class BaseAgentCapability:
         Initializes the capability with a specific activity.
 
         Args:
-            activity: The specific action to be performed.
+            activity (str): The specific action to be performed.
         """
         # TODO: not sure how good of an idea to init an agent with an activity in the state
         self.activity = activity
@@ -40,7 +39,6 @@ class BaseAgentCapability:
         """
         Execute the main logic of the agent.
         """
-
         raise NotImplementedError("Method `run` is not implemented")
 
 
@@ -80,14 +78,14 @@ class AgentCapabilityUnstructuredDataProcessor(BaseAgentCapability):
     """Capability for processing unstructured text."""
     name = "unstructured_data_processing"
 
-    def run(self: str, resources: list[ContentResource]) -> AgentCapabilityOutput:
+    def run(self, resources: list[ContentResource]) -> AgentCapabilityOutput:
         """
         Args:
         ask (str): what data we are analysing 
         """
         resource_contents = [web_resource.content for web_resource in resources]
 
-        # TODO: make this more robust 
+        # TODO: make this more robust, also now can only handle resources that have text content 
         text  = "; \n\n |  ".join(resource_contents)
 
         answers = text_process_llm(self.activity, text)
@@ -98,9 +96,25 @@ class AgentCapabilityUnstructuredDataProcessor(BaseAgentCapability):
         )
 
 
-class AgentCapabilityCodeMathWritter(BaseAgentCapability):
-    """Capability for writing code or solving math problems."""
-    name = "code_math_writing"
+class AgentCapabilityCodeWritterExecutor(BaseAgentCapability):
+    """Capability for writing and executing python code"""
+    name = "code_writing_execution"
+
+    def run(self, resources:list[ContentResource]) -> AgentCapabilityOutput:
+        """ 
+        """
+        # Analyse the given resources, determine what the files contain (EDA)
+        eda_code = write_python_eda(resources)
+        eda_results = run_code(eda_code)        
+        
+        # Given the activity=task and what EDA results determine the final code that would produce the result
+        task_code = write_python_code_task(task=self.activity, eda_results=eda_results, resources=resources)
+        results = run_code(task_code)
+        short_answers = [construct_short_answer(self.activity, results)] 
+        
+        return AgentCapabilityOutput(
+            answers=short_answers
+        ) 
 
 @dataclass
 class CapabilityPlan:
@@ -115,7 +129,7 @@ CAPABILITY_MAP: dict[str, Type[BaseAgentCapability]] = {
     AgentCapabilityImageProcessor.name: AgentCapabilityImageProcessor,
     AgentCapabilityStructuredDataProcessor.name: AgentCapabilityStructuredDataProcessor,
     AgentCapabilityUnstructuredDataProcessor.name: AgentCapabilityUnstructuredDataProcessor,
-    AgentCapabilityCodeMathWritter.name: AgentCapabilityCodeMathWritter,
+    AgentCapabilityCodeWritterExecutor.name: AgentCapabilityCodeWritterExecutor,
 }
 
 def json_to_capability_plan(json_data: dict, capability_map: dict[str, Type[BaseAgentCapability]] = CAPABILITY_MAP) -> CapabilityPlan:

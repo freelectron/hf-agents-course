@@ -49,9 +49,6 @@ def construct_short_answer(task: str, context: str) -> ShortAnswer:
     response_text = llm_response.text
     response_text = response_text.strip()
 
-    #FIXME: delete this 
-    print("----------- construct_short_answer ----------- ", response_text)
-
     data = json.loads(response_text)
     return ShortAnswer(
         answer=data.get("answer", "did-not-parse"),

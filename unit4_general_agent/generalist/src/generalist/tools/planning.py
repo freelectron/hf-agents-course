@@ -1,13 +1,13 @@
 import json
-import logging 
 
-from ..agents.core import AgentCapabilityAudioProcessor, AgentCapabilityCodeMathWritter, AgentCapabilityDeepWebSearch, AgentCapabilityImageProcessor, AgentCapabilityStructuredDataProcessor, AgentCapabilityUnstructuredDataProcessor, AgentCapabilityVideoProcessor, CapabilityPlan, json_to_capability_plan
+from ..agents.core import AgentCapabilityAudioProcessor, AgentCapabilityCodeWritterExecutor, AgentCapabilityDeepWebSearch, AgentCapabilityImageProcessor, AgentCapabilityStructuredDataProcessor, AgentCapabilityUnstructuredDataProcessor, AgentCapabilityVideoProcessor, CapabilityPlan, json_to_capability_plan
 from .data_model import Task
 from ..models.core import llm
+from ..tools.data_model import ContentResource
 
 from generalist import logger
 
-def create_plan(task: str) -> str:
+def create_plan(task: str, resources:list[ContentResource]) -> str:
     """
     Given a task, determine a step-by-step action plan of what needs to be done to accomplish this task and output the answer/result. 
     The most important actions that are taken: 
@@ -19,8 +19,10 @@ def create_plan(task: str) -> str:
 You are an expert project planner. Your task is to create a concise, step-by-step action plan to accomplish the user's goal.
 
 User's Goal:
----
 {task}
+---
+Available resources:
+{resources}
 ---
 
 Instructions:
@@ -62,9 +64,15 @@ where
 
     return task_response.text
 
-def determine_capabilities(current_step: str, task: Task, attachments: list[str] = None, context: str = "") -> CapabilityPlan:
+def determine_capabilities(current_step: str, task: Task, resources: list[ContentResource] = list(), context: str = "") -> CapabilityPlan:
     """
     Analyzes a task and generates a sequential execution plan using available capabilities.
+    
+    TODO: implement
+      - `{AgentCapabilityStructuredDataProcessor.name}`: Analyze, query, or visualize data from structured files like Parquet, CSV, JSON, or databases.
+      - `{AgentCapabilityImageProcessor.name}`: Download image, analyze an image to identify objects, read text (OCR), or understand its content.
+      - `{AgentCapabilityVideoProcessor.name}`: Download video, extract frames or audio from a video file for further analysis.
+      - `{AgentCapabilityAudioProcessor.name}`: Download audio, transcribe speech, identify sounds, or analyze properties of an audio file.
 
     Args:
         task (str): The description of the task to be performed.
@@ -74,8 +82,8 @@ def determine_capabilities(current_step: str, task: Task, attachments: list[str]
         CapabilityPlan: A dataclass containing the ordered list of sub-tasks.
     """
     attachment_info = ""
-    if attachments:
-        attachment_info = f"\n\nAttachments provided: {', '.join(attachments)}"
+    if resources:
+        attachment_info = f"\nAttached resources: {resources}"
 
     # TODO: is this fine to map capability to an agent one-to-one? 
     planning_prompt = f"""
@@ -83,13 +91,8 @@ You are a highly intelligent planning agent. Your primary function is to analyze
 
 **Capabilities:**
 - `{AgentCapabilityDeepWebSearch.name}`: Find, evaluate, and download web content (e.g., articles, documents). This capability is for search and downloading web resources only, not for processing the content or getting any answers on the content.
-- `{AgentCapabilityVideoProcessor.name}`: Download video, extract frames or audio from a video file for further analysis.
-- `{AgentCapabilityAudioProcessor.name}`: Download audio, transcribe speech, identify sounds, or analyze properties of an audio file.
-- `{AgentCapabilityImageProcessor.name}`: Download image, analyze an image to identify objects, read text (OCR), or understand its content.
-- `{AgentCapabilityStructuredDataProcessor.name}`: Analyze, query, or visualize data from structured files like Parquet, CSV, JSON, or databases.
 - `{AgentCapabilityUnstructuredDataProcessor.name}`: Analyze, summarize, extract information from, or answer questions about raw text or documents (e.g., PDFs, TXT files, retrieved web content).
-- `{AgentCapabilityCodeMathWritter.name}`: Generate or execute code, solve mathematical problems, or perform complex logical operations and computations.
-
+- `{AgentCapabilityCodeWritterExecutor.name}`: Generate or execute code, solve mathematical problems, or perform complex logical operations and computations.
 
 **Your Task:**
 Analyze the provided task and create a sequential plan to accomplish it. The plan should be a list of steps, where each step defines the capability to use and the specific activity to perform, thus:
@@ -122,8 +125,8 @@ Output:
 {{
     "subplan": [
   {{
-    "activity": "Download and transcribe the speech from podcast_episode.mp3",
-    "capability": "{AgentCapabilityAudioProcessor.name}"
+    "activity": "Write code to download and transcribe the speech from podcast_episode.mp3",
+    "capability": "{AgentCapabilityCodeWritterExecutor.name}"
   }},
   {{
     "activity": "Summarize the transcription to identify the main topics",

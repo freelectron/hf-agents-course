@@ -14,8 +14,8 @@ class ContentResource:
     """A unified dataclass for handling any type of resource that is being used for a task (web document, pdf file ).
 
     Attributes:
-        provided_by: who supplied the resource (user or an agent/tool call) # <=> as_answer_to
-        content: The main text content of the web page. Can be None if not yet downloaded.
+        provided_by: who supplied the resource (user or an agent/tool call) <=> as_answer_to
+        content: The main text content of the web page. Can be None if not yet (down)loaded.
         link: The unique URL or file path for the resource.
         metadata: A dictionary containing additional information, such as search result data.
     """
@@ -23,13 +23,6 @@ class ContentResource:
     content: Optional[str]
     link: str
     metadata: dict[str, Any]
-
-
-@dataclass
-class Attachments:
-    provided_by: str 
-    filepath: str 
-    description: str
 
 
 @dataclass
