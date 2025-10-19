@@ -51,7 +51,7 @@ class AgentCapabilityDeepWebSearch(BaseAgentCapability):
         Args:
          ask (str): what we are searching
         """
-        return AgentCapabilityOutput(resources=web_search(self.activity))
+        return AgentCapabilityOutput(answers=None, resources=web_search(self.activity))
 
 
 class AgentCapabilityVideoProcessor(BaseAgentCapability):

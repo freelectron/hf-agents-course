@@ -127,7 +127,7 @@ Context:
 
 **IMPORTANT**: you are only handling "{current_step}" of the plan "{task.plan}", FOCUS ONLY ON THAT AND WHAT WAS ALREADY FOUND IN THE CONTEXT.   
 **IMPORTANT**: take into account the context and attachments, e.g., specify the activity based on what was already FOUND in the context.     
-Respond in this exact JSON format:
+ONLY RESPOND WITH A SINGLE JSON, in this exact JSON format:
 {{
   "subplan": [
     {{

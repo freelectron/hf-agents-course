@@ -55,9 +55,6 @@ def construct_short_answer(task: str, context: str) -> ShortAnswer:
     if len(code_string) > 1: 
         response_text = code_string
 
-    #FIXME: delete me 
-    print("response_text\n", response_text)
-
     data = json.loads(response_text)
     return ShortAnswer(
         answer=data.get("answer", "did-not-parse"),

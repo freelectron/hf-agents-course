@@ -1,12 +1,21 @@
+import logging
+import requests
+
 from bs4 import BeautifulSoup
 import httpx
-
 from ddgs import DDGS
-import requests
 
 from ..tools import NOT_FOUND_LITERAL
 from ..tools.data_model import ContentResource, WebSearchResult
 from ..models.core import llm
+from ..utils import current_function
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 def question_to_queries(question: str, max_queries: int = 2) -> list[str]:
@@ -135,18 +144,10 @@ def brave_search(query: str, max_results: int = 2):
 
     base_search_url = "https://search.brave.com/search?q="
     search_url = base_search_url + "+".join(query.split(" "))
-
-    #FIXME: delete this
-    print("!!!!!!!!!!!! search_url !!!!!!!!!!", search_url)
-
+    logger.info(f"- {current_function()} -- Searching url: {search_url}")
     response_search = requests.get(search_url)
 
-    #FIXME: delete this
-    print("!!!!!!!!!!!! response_search !!!!!!!!!!", response_search.content)
-
-
     results = parse_search_results(str(response_search.content), max_results)
-
     found_resources = list()
     for i, result in enumerate(results):
         resource = WebSearchResult(
@@ -236,21 +237,17 @@ def web_search(question: str, links_per_query: int = 2) -> list[ContentResource]
     Returns:
         A list of WebResource objects, with their 'content' field populated.
     """
-    # 1. Generate search queries from the question
     candidate_queries = question_to_queries(question)
     print(f"\nGenerated queries: {candidate_queries}")
 
-    # 2. Search for relevant sources for each query
     all_sources = []
     for query in candidate_queries:
         search_results_for_query = brave_search(query, links_per_query) #duckduckgo_search(query, links_per_query)
         all_sources.extend(search_results_for_query)
 
-    # 3. Filter out any duplicate resources found by different queries
     unique_search_results = drop_non_unique_link(all_sources)
-    print(f"\nFound {len(unique_search_results)} unique web resources.")
+    logger.info(f"Found {len(unique_search_results)} unique sources.")
 
-    # 4. Download content for each unique resource
     final_resources = []
     for search in unique_search_results:
         content = download_content(search)
