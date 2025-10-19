@@ -1,4 +1,3 @@
-import logging
 import requests
 
 from bs4 import BeautifulSoup
@@ -9,12 +8,9 @@ from ..tools import NOT_FOUND_LITERAL
 from ..tools.data_model import ContentResource, WebSearchResult
 from ..models.core import llm
 from ..utils import current_function
+from .. import logging
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 

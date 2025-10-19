@@ -4,12 +4,15 @@ from ..agents.core import AgentCapabilityAudioProcessor, AgentCapabilityCodeWrit
 from .data_model import Task
 from ..models.core import llm
 from ..tools.data_model import ContentResource
+from .. import logging
+from ..utils import current_function
 
-from generalist import logger
+logger = logging.getLogger(__name__)
+
 
 def create_plan(task: str, resources:list[ContentResource]) -> str:
     """
-    Given a task, determine a step-by-step action plan of what needs to be done to accomplish this task and output the answer/result. 
+    Given a task, determine the next step that needs to be done to accomplish the task. 
     The most important actions that are taken: 
      1. Define the goal: what result is asked to be produced.
      2. List the steps: provide a short explanation for each action that needs to be taken.       
@@ -143,7 +146,7 @@ ONLY RESPOND WITH A SINGLE JSON, in this exact JSON format:
 """   
     response = llm.complete(planning_prompt)
     response_text = response.text.strip()
-
+    logger.info(f"- {current_function()} -- Raw output: {response_text}")
     result = json.loads(response_text)
 
     return json_to_capability_plan(result)
