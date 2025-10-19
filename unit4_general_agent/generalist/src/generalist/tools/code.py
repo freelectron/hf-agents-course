@@ -35,13 +35,13 @@ def write_python_eda(resources:list[ContentResource]) -> str:
 def write_python_code_task(task: str, eda_results: str, resources: list[ContentResource]):
 
     prompt = f"""
-    Task
+    Task:
     {task}
 
-    Resources
+    Resources to use: 
     {resources}
 
-    Information about resources
+    Information about resources:
     {eda_results}
 
     Given the resources and their specifications, write python code that completes the task.

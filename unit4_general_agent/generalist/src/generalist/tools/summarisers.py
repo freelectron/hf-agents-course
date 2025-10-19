@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import json
+import regex as re
 
 from .data_model import ShortAnswer
 from ..models.core import llm
@@ -48,6 +49,14 @@ def construct_short_answer(task: str, context: str) -> ShortAnswer:
     llm_response = llm.complete(prompt)
     response_text = llm_response.text
     response_text = response_text.strip()
+
+    json_match = re.search(r"```json\n(.*?)```", response_text, re.DOTALL)
+    code_string = json_match.group(1) if json_match else ""
+    if len(code_string) > 1: 
+        response_text = code_string
+
+    #FIXME: delete me 
+    print("response_text\n", response_text)
 
     data = json.loads(response_text)
     return ShortAnswer(

@@ -102,16 +102,17 @@ class AgentCapabilityCodeWritterExecutor(BaseAgentCapability):
 
     def run(self, resources:list[ContentResource]) -> AgentCapabilityOutput:
         """ 
+        TODO: determine how to pass resources in the output here?
         """
         # Analyse the given resources, determine what the files contain (EDA)
         eda_code = write_python_eda(resources)
-        eda_results = run_code(eda_code)        
-        
+        eda_results = run_code(eda_code)  
         # Given the activity=task and what EDA results determine the final code that would produce the result
         task_code = write_python_code_task(task=self.activity, eda_results=eda_results, resources=resources)
         results = run_code(task_code)
         short_answers = [construct_short_answer(self.activity, results)] 
         
+        # TODO: determine whether we want to create new resources here? always store info from running the scripts..
         return AgentCapabilityOutput(
             answers=short_answers
         ) 
