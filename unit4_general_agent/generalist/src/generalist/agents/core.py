@@ -6,6 +6,13 @@ from ..tools.text_processing import text_process_llm
 from ..tools.web_search import web_search 
 from ..tools.data_model import ContentResource, ShortAnswer
 from ..tools.code import write_python_eda, run_code, write_python_code_task
+from ..tools.media_download import download_audio
+from ..tools.audio_transcribe import transcribe_mp3_file
+from ..utils import current_function
+from .. import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -54,24 +61,35 @@ class AgentCapabilityDeepWebSearch(BaseAgentCapability):
         return AgentCapabilityOutput(answers=None, resources=web_search(self.activity))
 
 
-class AgentCapabilityVideoProcessor(BaseAgentCapability):
-    """Capability for processing video files."""
-    name = "video_processing"
-
-
 class AgentCapabilityAudioProcessor(BaseAgentCapability):
     """Capability for processing audio files."""
     name = "audio_processing"
+
+    def run(self, resources: list[ContentResource]):
+        
+        # FIXME: for testing, properly determine how to identify which resource to download 
+        resource = None
+        for r in resources:
+            if r.link.startswith("http"):
+                resource = r
+                break 
+
+        # downloads the file from the web to local 
+        file_path, meta = download_audio("tempfile_audio.mp3", resource.link)
+        logger.info(f"- {current_function()} -- Downloaded file to {file_path} with meta info {meta}.")
+
+        # transcirbes the file and returns just the text 
+        result = transcribe_mp3_file(file_path)
+
+        short_answers = [construct_short_answer(self.activity, result)] 
+        return AgentCapabilityOutput(
+            answers=short_answers
+        ) 
 
 
 class AgentCapabilityImageProcessor(BaseAgentCapability):
     """Capability for processing image files."""
     name = "image_processing"
-
-
-class AgentCapabilityStructuredDataProcessor(BaseAgentCapability):
-    """Capability for processing structured data."""
-    name = "structured_data_processing"
 
 
 class AgentCapabilityUnstructuredDataProcessor(BaseAgentCapability):
@@ -106,11 +124,13 @@ class AgentCapabilityCodeWritterExecutor(BaseAgentCapability):
         """
         # Analyse the given resources, determine what the files contain (EDA)
         eda_code = write_python_eda(resources)
-        eda_results = run_code(eda_code)  
+        eda_result = run_code(eda_code)  
+        logger.info(f"- AgentCapabilityCodeWritterExecutor.run -- EDA code to be executed:\n{eda_code}")
         # Given the activity=task and what EDA results determine the final code that would produce the result
-        task_code = write_python_code_task(task=self.activity, eda_results=eda_results, resources=resources)
-        results = run_code(task_code)
-        short_answers = [construct_short_answer(self.activity, results)] 
+        task_code = write_python_code_task(task=self.activity, eda_results=eda_result, resources=resources)
+        logger.info(f"- AgentCapabilityCodeWritterExecutor.run -- Final code to be executed:\n{task_code}")
+        result = run_code(task_code)
+        short_answers = [construct_short_answer(self.activity, result)] 
         
         # TODO: determine whether we want to create new resources here? always store info from running the scripts..
         return AgentCapabilityOutput(
@@ -125,10 +145,8 @@ class CapabilityPlan:
 
 CAPABILITY_MAP: dict[str, Type[BaseAgentCapability]] = {
     AgentCapabilityDeepWebSearch.name: AgentCapabilityDeepWebSearch,
-    AgentCapabilityVideoProcessor.name: AgentCapabilityVideoProcessor,
     AgentCapabilityAudioProcessor.name: AgentCapabilityAudioProcessor,
     AgentCapabilityImageProcessor.name: AgentCapabilityImageProcessor,
-    AgentCapabilityStructuredDataProcessor.name: AgentCapabilityStructuredDataProcessor,
     AgentCapabilityUnstructuredDataProcessor.name: AgentCapabilityUnstructuredDataProcessor,
     AgentCapabilityCodeWritterExecutor.name: AgentCapabilityCodeWritterExecutor,
 }

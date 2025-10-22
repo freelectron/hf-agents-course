@@ -5,6 +5,11 @@ import sys
 
 from ..tools.data_model import ContentResource
 from ..models.core import llm
+from ..utils import current_function
+from .. import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def write_python_eda(resources:list[ContentResource]) -> str: 

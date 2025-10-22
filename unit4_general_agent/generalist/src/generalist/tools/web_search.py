@@ -234,7 +234,7 @@ def web_search(question: str, links_per_query: int = 2) -> list[ContentResource]
         A list of WebResource objects, with their 'content' field populated.
     """
     candidate_queries = question_to_queries(question)
-    print(f"\nGenerated queries: {candidate_queries}")
+    logger.info(f"- {current_function()} -- Generated queries: {candidate_queries}")
 
     all_sources = []
     for query in candidate_queries:

@@ -1,6 +1,6 @@
 import json
 
-from ..agents.core import AgentCapabilityAudioProcessor, AgentCapabilityCodeWritterExecutor, AgentCapabilityDeepWebSearch, AgentCapabilityImageProcessor, AgentCapabilityStructuredDataProcessor, AgentCapabilityUnstructuredDataProcessor, AgentCapabilityVideoProcessor, CapabilityPlan, json_to_capability_plan
+from ..agents.core import AgentCapabilityAudioProcessor, AgentCapabilityCodeWritterExecutor, AgentCapabilityDeepWebSearch, AgentCapabilityImageProcessor,  AgentCapabilityUnstructuredDataProcessor, CapabilityPlan, json_to_capability_plan
 from .data_model import Task
 from ..models.core import llm
 from ..tools.data_model import ContentResource
@@ -58,12 +58,9 @@ where
 def determine_capabilities(current_step: str, task: Task, resources: list[ContentResource] = list(), context: str = "") -> CapabilityPlan:
     """
     Analyzes a task and generates a sequential execution plan using available capabilities.
-    
     TODO: implement
       - `{AgentCapabilityStructuredDataProcessor.name}`: Analyze, query, or visualize data from structured files like Parquet, CSV, JSON, or databases.
       - `{AgentCapabilityImageProcessor.name}`: Download image, analyze an image to identify objects, read text (OCR), or understand its content.
-      - `{AgentCapabilityVideoProcessor.name}`: Download video, extract frames or audio from a video file for further analysis.
-      - `{AgentCapabilityAudioProcessor.name}`: Download audio, transcribe speech, identify sounds, or analyze properties of an audio file.
 
     Args:
         task (str): The description of the task to be performed.
@@ -84,6 +81,7 @@ Capabilities:
 - `{AgentCapabilityDeepWebSearch.name}`: Find, evaluate, and download web content (e.g., articles, documents). This capability is for search and downloading web resources only, not for processing the content or getting any answers on the content.
 - `{AgentCapabilityUnstructuredDataProcessor.name}`: Analyze, summarize, extract information from, or answer questions about raw text or documents (e.g., PDFs, TXT files, retrieved web content).
 - `{AgentCapabilityCodeWritterExecutor.name}`: Generate or execute code, solve mathematical problems, or perform complex logical operations and computations on files.
+- `{AgentCapabilityAudioProcessor.name}`: Download audio file, transcribes speech.
 
 Your Task:
 Analyze the provided task and create a sequential plan to accomplish it. The plan should be a list of steps, where each step defines the capability to use and the specific activity to perform, thus:
